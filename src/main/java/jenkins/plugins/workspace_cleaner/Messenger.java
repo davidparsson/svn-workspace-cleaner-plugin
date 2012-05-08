@@ -21,4 +21,8 @@ class Messenger {
         logger.println(message);
     }
 
+    public void printStackTrace(final Exception exception) {
+        exception.printStackTrace(logger);
+    }
+
 }

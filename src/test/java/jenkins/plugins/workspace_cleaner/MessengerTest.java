@@ -18,6 +18,9 @@ public class MessengerTest extends AbstractMockitoTestCase {
     @Mock
     private PrintStream logger;
 
+    @Mock
+    private Exception exception;
+
     @Before
     public void setup() {
         messenger = new Messenger(logger);
@@ -33,5 +36,11 @@ public class MessengerTest extends AbstractMockitoTestCase {
     public void logsInput() throws Exception {
         messenger.log(GENERIC_TEXT);
         verify(logger).println(GENERIC_TEXT);
+    }
+
+    @Test
+    public void logsStackTrace() throws Exception {
+        messenger.printStackTrace(exception);
+        verify(exception).printStackTrace(logger);
     }
 }
