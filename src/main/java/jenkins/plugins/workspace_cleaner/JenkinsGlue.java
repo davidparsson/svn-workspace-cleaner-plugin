@@ -1,4 +1,4 @@
-package jenkins.plugins.module_cleaner;
+package jenkins.plugins.workspace_cleaner;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -28,7 +28,8 @@ public class JenkinsGlue extends BuildWrapper {
     public Environment setUp(final AbstractBuild build, final Launcher launcher,
             final BuildListener listener)
             throws IOException, InterruptedException {
-        return super.setUp(build, launcher, listener);
+        final Messenger messenger = new Messenger(listener.getLogger());
+        return ModuleCleaner.removeUnconfiguredModules(build, messenger);
     }
 
     @Extension
