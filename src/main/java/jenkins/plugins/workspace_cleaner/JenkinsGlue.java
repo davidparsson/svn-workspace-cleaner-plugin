@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
+@SuppressWarnings("rawtypes")
 public class JenkinsGlue extends BuildWrapper {
 
     @DataBoundConstructor
@@ -19,21 +20,21 @@ public class JenkinsGlue extends BuildWrapper {
     }
 
     @Override
-    public ModuleCleanerDescriptorImpl getDescriptor() {
-        return (ModuleCleanerDescriptorImpl)super.getDescriptor();
+    public WorkspaceCleanerDescriptorImpl getDescriptor() {
+        return (WorkspaceCleanerDescriptorImpl)super.getDescriptor();
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public Environment setUp(final AbstractBuild build, final Launcher launcher,
-            final BuildListener listener)
-            throws IOException, InterruptedException {
+            final BuildListener listener) throws IOException, InterruptedException {
         final Messenger messenger = new Messenger(listener.getLogger());
-        return ModuleCleaner.removeUnconfiguredModules(build, messenger);
+        ModuleCleaner.removeUnconfiguredModules(build, messenger);
+        return new Environment() {
+        };
     }
 
     @Extension
-    public static final class ModuleCleanerDescriptorImpl extends BuildWrapperDescriptor {
+    public static final class WorkspaceCleanerDescriptorImpl extends BuildWrapperDescriptor {
 
         @Override
         public boolean isApplicable(final AbstractProject<?, ?> item) {
@@ -44,7 +45,6 @@ public class JenkinsGlue extends BuildWrapper {
         public String getDisplayName() {
             return "Cleans up unused Subversion modules.";
         }
-
 
     }
 

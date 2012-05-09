@@ -28,11 +28,14 @@ public class PluginAcceptanceTest extends HudsonTestCase {
         assertLogContains(Messenger.NOT_SUBVERSION_SCM, currentBuild);
     }
 
-    public void IGNORED_testShouldRemoveDeletedModule() throws Exception {
+    public void testShouldRemoveDeletedModule() throws Exception {
         givenJobWithDeletedModule();
+        assertDirectoryInWorkspace(MODULE_1);
+        assertDirectoryInWorkspace(MODULE_2);
 
         currentBuild = build(job);
 
+        assertDirectoryInWorkspace(MODULE_1);
         assertDirectoryNotInWorkspace(MODULE_2);
     }
 
@@ -42,10 +45,16 @@ public class PluginAcceptanceTest extends HudsonTestCase {
                 directory.exists());
     }
 
+    private void assertDirectoryInWorkspace(final String directoryName) throws Exception {
+        final FilePath directory = currentBuild.getWorkspace().child(directoryName);
+        assertTrue("Expected directory '" + directory + "' to exist, but did not!",
+                directory.exists());
+    }
+
     private void givenJobWithDeletedModule() throws Exception {
         job = getJobNamed("subversion-scm-job");
         job.setScm(getScmWithModules(MODULE_1, MODULE_2));
-        build(job);
+        currentBuild = build(job);
         job.setScm(getScmWithModules(MODULE_1));
     }
 
