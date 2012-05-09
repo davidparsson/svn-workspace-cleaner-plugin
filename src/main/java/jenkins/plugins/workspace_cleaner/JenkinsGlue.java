@@ -27,8 +27,9 @@ public class JenkinsGlue extends BuildWrapper {
     @Override
     public Environment setUp(final AbstractBuild build, final Launcher launcher,
             final BuildListener listener) throws IOException, InterruptedException {
-        final Messenger messenger = new Messenger(listener.getLogger());
-        ModuleCleaner.removeUnconfiguredModules(build, messenger);
+        final FilePathAdapter filePathAdapter = new FilePathAdapter();
+        final Messenger messenger = new Messenger(listener.getLogger(), filePathAdapter);
+        ModuleCleaner.removeUnconfiguredModules(build, filePathAdapter, messenger);
         return new Environment() {
         };
     }

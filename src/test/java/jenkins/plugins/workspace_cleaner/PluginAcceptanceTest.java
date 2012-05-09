@@ -8,6 +8,7 @@ import hudson.scm.SubversionSCM;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.jvnet.hudson.test.HudsonHomeLoader.CopyExisting;
 import org.jvnet.hudson.test.HudsonTestCase;
@@ -17,36 +18,38 @@ public class PluginAcceptanceTest extends HudsonTestCase {
 
     private static final String MODULE_1 = "module1";
     private static final String MODULE_2 = "module2";
+    private static final int LOG_LIMIT = 100;
     private FreeStyleProject job;
-    private FreeStyleBuild currentBuild;
+    private FreeStyleBuild lastBuild;
 
     public void testShouldOnlyLogWhenNotSubversionScm() throws Exception {
         givenJobWithNullScm();
 
-        currentBuild = build(job);
+        build(job);
 
-        assertLogContains(Messenger.NOT_SUBVERSION_SCM, currentBuild);
+        printLogFor(lastBuild);
+        assertLogContains(Messenger.NOT_SUBVERSION_SCM, lastBuild);
     }
 
     public void testShouldRemoveDeletedModule() throws Exception {
         givenJobWithDeletedModule();
-        assertDirectoryInWorkspace(MODULE_1);
-        assertDirectoryInWorkspace(MODULE_2);
 
-        currentBuild = build(job);
+        build(job);
 
+        printLogFor(lastBuild);
+        assertLogContains(getModuleRemovedMessage(MODULE_2), lastBuild);
         assertDirectoryInWorkspace(MODULE_1);
         assertDirectoryNotInWorkspace(MODULE_2);
     }
 
     private void assertDirectoryNotInWorkspace(final String directoryName) throws Exception {
-        final FilePath directory = currentBuild.getWorkspace().child(directoryName);
+        final FilePath directory = lastBuild.getWorkspace().child(directoryName);
         assertFalse("Expected directory '" + directory + "' to be removed, but was not!",
                 directory.exists());
     }
 
     private void assertDirectoryInWorkspace(final String directoryName) throws Exception {
-        final FilePath directory = currentBuild.getWorkspace().child(directoryName);
+        final FilePath directory = lastBuild.getWorkspace().child(directoryName);
         assertTrue("Expected directory '" + directory + "' to exist, but did not!",
                 directory.exists());
     }
@@ -54,12 +57,15 @@ public class PluginAcceptanceTest extends HudsonTestCase {
     private void givenJobWithDeletedModule() throws Exception {
         job = getJobNamed("subversion-scm-job");
         job.setScm(getScmWithModules(MODULE_1, MODULE_2));
-        currentBuild = build(job);
+        build(job);
+        assertDirectoryInWorkspace(MODULE_1);
+        assertDirectoryInWorkspace(MODULE_2);
         job.setScm(getScmWithModules(MODULE_1));
     }
 
     private FreeStyleBuild build(final FreeStyleProject job) throws Exception {
-        return job.scheduleBuild2(0).get();
+        lastBuild = job.scheduleBuild2(0).get();
+        return lastBuild;
     }
 
     private SubversionSCM getScmWithModules(final String... modules) throws Exception {
@@ -93,6 +99,22 @@ public class PluginAcceptanceTest extends HudsonTestCase {
      */
     private File getRepoWithTwoModules() throws Exception {
         return new CopyExisting(getClass().getResource("repoWithTwoModules.zip")).allocate();
+    }
+
+    private void printLogFor(final FreeStyleBuild build) throws IOException {
+        final List<String> logLines = build.getLog(LOG_LIMIT);
+        System.out.println("Build log: ");
+        printLog(logLines);
+    }
+
+    private void printLog(final List<String> logLines) {
+        for (final String logLine : logLines) {
+            System.out.println("   " + logLine);
+        }
+    }
+
+    private String getModuleRemovedMessage(final String moduleName) {
+        return String.format(Messenger.DIRECTORY_DELETED, moduleName);
     }
 
 }

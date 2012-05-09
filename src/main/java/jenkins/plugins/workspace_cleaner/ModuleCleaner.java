@@ -2,29 +2,26 @@ package jenkins.plugins.workspace_cleaner;
 
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
-import hudson.scm.SCM;
 import hudson.scm.SubversionSCM;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.collect.Lists;
 
 public class ModuleCleaner {
 
     static void removeUnconfiguredModules(final AbstractBuild<?, ?> build,
-            final Messenger messenger) {
+            final FilePathAdapter filePathAdapter, final Messenger messenger) {
         if (hasNoSubversionScm(build)) {
             messenger.informNotSubversionScm();
             return;
         }
         try {
-            final List<FilePath> modulesInFileSystem = getModulesInFileSystem(build);
-            final List<FilePath> modulesInScm = getModulesInScm(build);
-            for (final FilePath moduleInFileSystem : modulesInFileSystem) {
-                if (filePathNotIn(modulesInScm, moduleInFileSystem)) {
-                    moduleInFileSystem.deleteRecursive();
+            final List<FilePath> fileSystemModules = getModulesInFileSystem(build, filePathAdapter);
+            final List<FilePath> scmModules = filePathAdapter.getModulesInScm(build);
+            for (final FilePath fileSystemModule : fileSystemModules) {
+                if (filePathNotInScm(scmModules, fileSystemModule)) {
+                    filePathAdapter.deleteRecursive(fileSystemModule);
+                    messenger.informDirectoryDeleted(fileSystemModule);
                 }
             }
         } catch (final IOException e) {
@@ -34,31 +31,31 @@ public class ModuleCleaner {
         }
     }
 
-    private static List<FilePath> getModulesInFileSystem(final AbstractBuild<?, ?> build)
+    private static List<FilePath> getModulesInFileSystem(final AbstractBuild<?, ?> build, final FilePathAdapter filePathAdapter)
             throws IOException, InterruptedException {
-        final List<FilePath> modules = build.getWorkspace().list();
-        for (int i = modules.size() - 1; i >= 0; i--) {
-            if (!modules.get(i).isDirectory()) {
-                modules.remove(i);
+        final List<FilePath> files = filePathAdapter.getFilesInWorkspace(build);
+        for (int i = files.size() - 1; i >= 0; i--) {
+            if (isNoModule(files.get(i), filePathAdapter)) {
+                files.remove(i);
             }
         }
-        return modules;
+        return files;
     }
 
-    private static ArrayList<FilePath> getModulesInScm(final AbstractBuild<?, ?> build) {
-        final SCM scm = build.getProject().getRootProject().getScm();
-        return Lists.newArrayList(scm.getModuleRoots(build.getWorkspace(), build));
+    private static boolean isNoModule(final FilePath file, final FilePathAdapter filePathAdapter)
+            throws IOException, InterruptedException {
+        return !filePathAdapter.isDirectory(file) || filePathAdapter.getName(file).startsWith(".");
     }
 
-    private static boolean filePathNotIn(final List<FilePath> modulesInScm,
-            final FilePath moduleInFileSystem) {
-        return !filePathIn(modulesInScm, moduleInFileSystem);
+    private static boolean filePathNotInScm(final List<FilePath> scmModules,
+            final FilePath fileSystemModule) {
+        return !filePathIn(scmModules, fileSystemModule);
     }
 
-    private static boolean filePathIn(final List<FilePath> modulesInScm,
-            final FilePath moduleInFileSystem) {
-        for (final FilePath moduleInScm : modulesInScm) {
-            if (moduleInScm.equals(moduleInFileSystem)) {
+    private static boolean filePathIn(final List<FilePath> scmModules,
+            final FilePath fileSystemModule) {
+        for (final FilePath moduleInScm : scmModules) {
+            if (moduleInScm.equals(fileSystemModule)) {
                 return true;
             }
         }
