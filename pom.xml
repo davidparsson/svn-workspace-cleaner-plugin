@@ -10,9 +10,9 @@
   </parent>
   <name>Jenkins SVN Workspace Cleaner</name>
   <scm>
-    <url>http://github.com/david.parsson/svn-module-cleaner-plugin</url>
-    <connection>scm:git:git://github.com/david.parsson/svn-module-cleaner-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:david.parsson/svn-module-cleaner-plugin.git</developerConnection>
+    <url>https://github.com/davidparsson/svn-workspace-cleaner-plugin</url>
+    <connection>scm:git:git@github.com:davidparsson/svn-workspace-cleaner-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:davidparsson/svn-workspace-cleaner-plugin.git</developerConnection>
   </scm>
   <repositories>
     <repository>
