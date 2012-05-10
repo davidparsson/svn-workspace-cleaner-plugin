@@ -8,7 +8,7 @@
     <artifactId>plugin</artifactId>
     <version>1.444</version>
   </parent>
-  <name>Jenkins SVN Workspace Cleaner</name>
+  <name>Subversion Workspace Cleaner</name>
   <scm>
     <url>https://github.com/davidparsson/svn-workspace-cleaner-plugin</url>
     <connection>scm:git:git@github.com:davidparsson/svn-workspace-cleaner-plugin.git</connection>
