@@ -44,7 +44,7 @@ public class JenkinsGlue extends BuildWrapper {
 
         @Override
         public String getDisplayName() {
-            return "Clean up unused Subversion modules.";
+            return "Clean up unused Subversion modules";
         }
 
     }
