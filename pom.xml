@@ -10,8 +10,8 @@
   </parent>
   <name>Subversion Workspace Cleaner</name>
   <scm>
-    <url>https://github.com/davidparsson/svn-workspace-cleaner-plugin</url>
-    <connection>scm:git:git@github.com:davidparsson/svn-workspace-cleaner-plugin.git</connection>
+    <url>http://github.com/davidparsson/svn-workspace-cleaner-plugin</url>
+    <connection>scm:git:git://github.com/davidparsson/svn-workspace-cleaner-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:davidparsson/svn-workspace-cleaner-plugin.git</developerConnection>
   </scm>
   <repositories>
