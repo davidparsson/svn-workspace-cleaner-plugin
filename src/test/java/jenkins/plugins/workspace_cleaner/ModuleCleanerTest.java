@@ -45,7 +45,7 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
 
     private final FilePath module1 = new FilePath(new File("module1"));
     private final FilePath module2 = new FilePath(new File("module2"));
-    private final FilePath dotFolder = new FilePath(new File(".folder"));
+    private final FilePath folder = new FilePath(new File("folder"));
     private final FilePath file = new FilePath(new File("file.txt"));
 
     @Before
@@ -53,14 +53,10 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
         when(build.getProject()).thenReturn(project);
         when(project.getRootProject()).thenReturn(rootProject);
         when(rootProject.getScm()).thenReturn(subversionScm);
-        when(filePathAdapter.isDirectory(module1)).thenReturn(true);
-        when(filePathAdapter.isDirectory(module2)).thenReturn(true);
-        when(filePathAdapter.isDirectory(dotFolder)).thenReturn(true);
-        when(filePathAdapter.isDirectory(file)).thenReturn(false);
-        when(filePathAdapter.getName(module1)).thenReturn("module1");
-        when(filePathAdapter.getName(module2)).thenReturn("module2");
-        when(filePathAdapter.getName(dotFolder)).thenReturn(".folder");
-        when(filePathAdapter.getName(file)).thenReturn("file.txt");
+        when(filePathAdapter.isSvnModule(module1)).thenReturn(true);
+        when(filePathAdapter.isSvnModule(module2)).thenReturn(true);
+        when(filePathAdapter.isSvnModule(folder)).thenReturn(false);
+        when(filePathAdapter.isSvnModule(file)).thenReturn(false);
     }
 
     @Test
@@ -117,13 +113,13 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
     }
 
     @Test
-    public void shouldNotDeleteDotFolders() throws Exception {
-        givenFilesInWorkspace(dotFolder);
+    public void shouldNotDeleteFoldersWithoutDotSvnChild() throws Exception {
+        givenFilesInWorkspace(folder);
         givenNoModulesInScm();
 
         whenRemovingModules();
 
-        verify(filePathAdapter, never()).deleteRecursive(dotFolder);
+        verify(filePathAdapter, never()).deleteRecursive(folder);
     }
 
     @Test

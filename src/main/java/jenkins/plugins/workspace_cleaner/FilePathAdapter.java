@@ -11,13 +11,7 @@ import com.google.common.collect.Lists;
 
 public class FilePathAdapter {
 
-    public boolean isDirectory(final FilePath filePath) throws IOException, InterruptedException {
-        return filePath.isDirectory();
-    }
-
-    public List<FilePath> list(final FilePath filePath) throws IOException, InterruptedException {
-        return filePath.list();
-    }
+    private static final String SVN_DIRECTORY_NAME = ".svn";
 
     public void deleteRecursive(final FilePath filePath) throws IOException, InterruptedException {
         filePath.deleteRecursive();
@@ -27,17 +21,26 @@ public class FilePathAdapter {
         return filePath.getName();
     }
 
-    public FilePath getWorkspace(final AbstractBuild<?, ?> build) {
-        return build.getWorkspace();
-    }
-
     public List<FilePath> getFilesInWorkspace(final AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-        return getWorkspace(build).list();
+        return build.getWorkspace().list();
     }
 
     public List<FilePath> getModulesInScm(final AbstractBuild<?, ?> build) {
         final SCM scm = build.getProject().getRootProject().getScm();
         return Lists.newArrayList(scm.getModuleRoots(build.getWorkspace(), build));
+    }
+
+    public boolean isSvnModule(final FilePath filePath) throws IOException, InterruptedException {
+        if (!filePath.isDirectory()) {
+            return false;
+        }
+        final List<FilePath> childFilePaths = filePath.list();
+        for (final FilePath child : childFilePaths) {
+            if (SVN_DIRECTORY_NAME.equals(child.getName()) && child.isDirectory()) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

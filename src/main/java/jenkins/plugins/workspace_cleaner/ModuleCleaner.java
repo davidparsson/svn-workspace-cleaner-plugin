@@ -35,16 +35,11 @@ public class ModuleCleaner {
             throws IOException, InterruptedException {
         final List<FilePath> files = filePathAdapter.getFilesInWorkspace(build);
         for (int i = files.size() - 1; i >= 0; i--) {
-            if (isNoModule(files.get(i), filePathAdapter)) {
+            if (!filePathAdapter.isSvnModule(files.get(i))) {
                 files.remove(i);
             }
         }
         return files;
-    }
-
-    private static boolean isNoModule(final FilePath file, final FilePathAdapter filePathAdapter)
-            throws IOException, InterruptedException {
-        return !filePathAdapter.isDirectory(file) || filePathAdapter.getName(file).startsWith(".");
     }
 
     private static boolean filePathNotInScm(final List<FilePath> scmModules,
