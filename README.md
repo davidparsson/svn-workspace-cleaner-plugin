@@ -1,7 +1,7 @@
 Jenkins SVN Module Cleaner Plugin
 =================================
 
-A Jenkins CI plugin that automatically removes SVN modules from workspaces when the modules are removed from the jobs SVN configuration.
+A Jenkins CI plugin that automatically removes SVN modules from workspaces when the modules are removed from the job's SVN configuration.
 
 Change Log
 ----------
