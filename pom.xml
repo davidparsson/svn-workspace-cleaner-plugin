@@ -16,10 +16,17 @@
   </scm>
   <repositories>
     <repository>
-      <id>m.g.o-public</id>
-      <url>http://maven.glassfish.org/content/groups/public/</url>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
     </repository>
   </repositories>
+  <developers>
+    <developer>
+      <id>davidparsson</id>
+      <name>David Pärsson</name>
+      <email>david.parsson@gmail.com</email>
+    </developer>
+  </developers>
   <build>
     <pluginManagement>
       <plugins>
