@@ -6,6 +6,10 @@ A Jenkins CI plugin that automatically removes SVN modules from workspaces when 
 Change Log
 ----------
 
+### 1.0 (11 May 2012)
+
+- Public release. No functional changes.
+
 ### 0.2 (10 May 2012)
 
 - Only removing directories if they contain a .svn folder.
