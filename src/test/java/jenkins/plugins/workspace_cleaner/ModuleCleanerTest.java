@@ -45,7 +45,7 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
 
     private final FilePath module1 = new FilePath(new File("module1"));
     private final FilePath module2 = new FilePath(new File("module2"));
-    private final FilePath folder = new FilePath(new File("folder"));
+    private final FilePath directory = new FilePath(new File("folder"));
     private final FilePath file = new FilePath(new File("file.txt"));
 
     @Before
@@ -53,10 +53,10 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
         when(build.getProject()).thenReturn(project);
         when(project.getRootProject()).thenReturn(rootProject);
         when(rootProject.getScm()).thenReturn(subversionScm);
-        when(filePathAdapter.isSvnModule(module1)).thenReturn(true);
-        when(filePathAdapter.isSvnModule(module2)).thenReturn(true);
-        when(filePathAdapter.isSvnModule(folder)).thenReturn(false);
-        when(filePathAdapter.isSvnModule(file)).thenReturn(false);
+        givenIsSvnModule(module1);
+        givenIsSvnModule(module2);
+        givenIsDirectory(directory);
+        givenIsFile(file);
     }
 
     @Test
@@ -114,12 +114,12 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
 
     @Test
     public void shouldNotDeleteFoldersWithoutDotSvnChild() throws Exception {
-        givenFilesInWorkspace(folder);
+        givenFilesInWorkspace(directory);
         givenNoModulesInScm();
 
         whenRemovingModules();
 
-        verify(filePathAdapter, never()).deleteRecursive(folder);
+        verify(filePathAdapter, never()).deleteRecursive(directory);
     }
 
     @Test
@@ -132,6 +132,43 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
         verifyNoMoreInteractions(messenger);
     }
 
+    @Test
+    public void shouldDeleteNestedModuleInFilesystemWhenNotInScm() throws Exception {
+        givenFilesInWorkspace(directory);
+        givenFilesInDirectory(directory, module1, module2);
+        givenModulesInScm(module1);
+
+        whenRemovingModules();
+
+        verify(filePathAdapter).deleteRecursive(module2);
+    }
+
+    @Test
+    public void shouldNotDeleteNestedModuleInFilesystemWhenInScm() throws Exception {
+        givenFilesInWorkspace(directory);
+        givenFilesInDirectory(directory, module1, module2);
+        givenModulesInScm(module1);
+
+        whenRemovingModules();
+
+        verify(filePathAdapter, never()).deleteRecursive(module1);
+    }
+
+    private void givenIsFile(final FilePath filePath) throws Exception {
+        when(filePathAdapter.isSvnModule(filePath)).thenReturn(false);
+        when(filePathAdapter.isDirectory(filePath)).thenReturn(false);
+    }
+
+    private void givenIsDirectory(final FilePath filePath) throws Exception {
+        when(filePathAdapter.isSvnModule(filePath)).thenReturn(false);
+        when(filePathAdapter.isDirectory(filePath)).thenReturn(true);
+    }
+
+    private void givenIsSvnModule(final FilePath filePath) throws Exception {
+        when(filePathAdapter.isSvnModule(filePath)).thenReturn(true);
+        when(filePathAdapter.isDirectory(filePath)).thenReturn(true);
+    }
+
     private void givenNoModulesInScm() throws Exception {
         givenModulesInScm();
     }
@@ -140,7 +177,15 @@ public class ModuleCleanerTest extends AbstractMockitoTestCase {
         when(filePathAdapter.getFilesInWorkspace(build)).thenReturn(Lists.newArrayList(files));
     }
 
+    private void givenFilesInDirectory(final FilePath parentDirectory, final FilePath... files)
+            throws Exception {
+        when(filePathAdapter.listDirectory(parentDirectory)).thenReturn(
+                Lists.newArrayList(files));
+    }
+
     private void givenModulesInScm(final FilePath... modules) throws Exception {
         when(filePathAdapter.getModulesInScm(build)).thenReturn(Lists.newArrayList(modules));
     }
+
 }
+

@@ -7,6 +7,8 @@ import hudson.scm.SubversionSCM;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 public class ModuleCleaner {
 
     static void removeUnconfiguredModules(final AbstractBuild<?, ?> build,
@@ -16,7 +18,7 @@ public class ModuleCleaner {
             return;
         }
         try {
-            final List<FilePath> fileSystemModules = getModulesInFileSystem(build, filePathAdapter);
+            final List<FilePath> fileSystemModules = getSvnModulesInFileSystem(build, filePathAdapter);
             final List<FilePath> scmModules = filePathAdapter.getModulesInScm(build);
             for (final FilePath fileSystemModule : fileSystemModules) {
                 if (filePathNotInScm(scmModules, fileSystemModule)) {
@@ -31,15 +33,34 @@ public class ModuleCleaner {
         }
     }
 
-    private static List<FilePath> getModulesInFileSystem(final AbstractBuild<?, ?> build, final FilePathAdapter filePathAdapter)
+    private static List<FilePath> getSvnModulesInFileSystem(final AbstractBuild<?, ?> build, final FilePathAdapter filePathAdapter)
             throws IOException, InterruptedException {
         final List<FilePath> files = filePathAdapter.getFilesInWorkspace(build);
         for (int i = files.size() - 1; i >= 0; i--) {
-            if (!filePathAdapter.isSvnModule(files.get(i))) {
+            final FilePath currentFile = files.get(i);
+            if (!filePathAdapter.isSvnModule(currentFile)) {
                 files.remove(i);
+                files.addAll(getSvnModulesIn(currentFile, filePathAdapter));
             }
         }
         return files;
+    }
+
+    private static List<FilePath> getSvnModulesIn(final FilePath parentFile, final FilePathAdapter filePathAdapter)
+            throws IOException, InterruptedException {
+        final List<FilePath> svnModules = Lists.newArrayList();
+        if (!filePathAdapter.isDirectory(parentFile)) {
+            return svnModules;
+        }
+        final List<FilePath> filesInDirectory = filePathAdapter.listDirectory(parentFile);
+        for (final FilePath childFile : filesInDirectory) {
+            if (filePathAdapter.isSvnModule(childFile)) {
+                svnModules.add(childFile);
+            } else if (filePathAdapter.isDirectory(childFile)) {
+                svnModules.addAll(getSvnModulesIn(childFile, filePathAdapter));
+            }
+        }
+        return svnModules;
     }
 
     private static boolean filePathNotInScm(final List<FilePath> scmModules,

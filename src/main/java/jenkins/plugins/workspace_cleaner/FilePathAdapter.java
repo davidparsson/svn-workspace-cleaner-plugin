@@ -43,4 +43,13 @@ public class FilePathAdapter {
         return false;
     }
 
+    public List<FilePath> listDirectory(final FilePath directory) throws IOException,
+            InterruptedException {
+        return directory.list();
+    }
+
+    public boolean isDirectory(final FilePath filePath) throws IOException, InterruptedException {
+        return filePath.isDirectory();
+    }
+
 }
